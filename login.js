@@ -5,6 +5,10 @@ function formatToISO(date) {
   return date.toISOString().replace('T', ' ').replace('Z', '').replace(/\.\d{3}Z/, '');
 }
 
+function maskUsername(username) {
+  return username.slice(0, 2) + '*'.repeat(username.length - 2);
+}
+
 async function delayTime(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -16,6 +20,7 @@ async function delayTime(ms) {
 
   for (const account of accounts) {
     const { username, password, panelnum } = account;
+    const maskedUsername = maskUsername(username);
 
     const browser = await puppeteer.launch({ headless: false });
     const page = await browser.newPage();
@@ -56,14 +61,14 @@ async function delayTime(ms) {
 
       if (isLoggedIn) {
         // 获取当前的UTC时间和北京时间
-        const nowUtc = formatToISO(new Date());// UTC时间
+        const nowUtc = formatToISO(new Date()); // UTC时间
         const nowBeijing = formatToISO(new Date(new Date().getTime() + 8 * 60 * 60 * 1000)); // 北京时间东8区，用算术来搞
-        console.log(`账号 ${username} 于北京时间 ${nowBeijing}（UTC时间 ${nowUtc}）登录成功！`);
+        console.log(`账号 ${maskedUsername} （服务器 panel${panelnum}）于北京时间 ${nowBeijing}（UTC时间 ${nowUtc}）登录成功！`);
       } else {
-        console.error(`账号 ${username} 登录失败，请检查账号和密码是否正确。`);
+        console.error(`账号 ${maskedUsername} （服务器 panel${panelnum}）登录失败，请检查账号和密码是否正确。`);
       }
     } catch (error) {
-      console.error(`账号 ${username} 登录时出现错误: ${error}`);
+      console.error(`账号 ${maskedUsername} （服务器 panel${panelnum}）登录时出现错误: ${error}`);
     } finally {
       // 关闭页面和浏览器
       await page.close();
@@ -77,8 +82,3 @@ async function delayTime(ms) {
 
   console.log('所有账号登录完成！');
 })();
-
-// 自定义延时函数
-function delayTime(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
